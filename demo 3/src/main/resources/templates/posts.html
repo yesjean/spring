@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Post List</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+<h1>Posts</h1>
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Content</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="post : ${posts}">
+        <td th:text="${post.id}"></td>
+        <td th:text="${post.title}"></td>
+        <td th:text="${post.content}"></td>
+        <td>
+            <a th:href="@{/posts/{id}(id=${post.id})}" class="edit"><i class="fas fa-edit"></i>Edit</a>
+            <a th:href="@{/posts/delete/{id}(id=${post.id})}" class="delete"><i class="fas fa-trash"></i>Delete</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<h2>Create New Post</h2>
+<form th:action="@{/posts}" method="post">
+    <label for="title">Title:</label>
+    <input type="text" id="title" name="title" required>
+    <label for="content">Content:</label>
+    <textarea id="content" name="content" required></textarea>
+    <button type="submit">Create Post</button>
+</form>
+</body>
+</html>
