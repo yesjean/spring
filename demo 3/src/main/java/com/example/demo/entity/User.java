@@ -23,7 +23,7 @@ public class User {
     private String emailId; // 추가적인 이메일 ID 추가
 
     private String lastName; // 사용자 성 추가
-    private boolean enabled; // 사용자 활성화 상태
+    private boolean enabled = true; // 사용자 활성화 상태
     // 기본 생성자
     public User() {}
 
