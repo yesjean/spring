@@ -1,7 +1,9 @@
 package com.example.demo.service;
 
+import com.example.demo.entity.Post;
 import com.example.demo.entity.User;
 import com.example.demo.entity.UserRole;
+import com.example.demo.repository.PostRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.UserRoleRepository;
 import org.antlr.v4.runtime.misc.LogManager;
@@ -10,6 +12,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -18,17 +22,24 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
     private final UserRoleRepository userRoleRepository; // 추가
+    private final PostRepository postRepository;
     private PasswordEncoder password;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public UserService(UserRoleRepository userRoleRepository) {
+    public UserService(UserRoleRepository userRoleRepository, PostRepository postRepository) {
         this.userRoleRepository = userRoleRepository;
+        this.postRepository = postRepository;
+    }
+    public List<User> findAllUsers() {
+        return userRepository.findAll();
     }
 
+    public List<Post> findAllPosts() {
+        return postRepository.findAll();
+    }
     public void registerUser(User user) {
-        System.out.println("Saving user: " + user.getUsername());
-        System.out.println("비밀번호: " + user.getPassword());
+        user.setRole("ROLE_USER"); // 기본 역할
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         try {
             userRepository.save(user);
@@ -40,16 +51,21 @@ public class UserService {
     }
 
     // 로그인 처리
-    public boolean authenticate(String username, String password) {
-        System.out.println("로그인 되니?");
+    public String authenticate(String username, String password) {
+        System.out.println("Username: " + username + ", Password: " + password);
+
         Optional<User> userOptional = userRepository.findByUsername(username);
         if (userOptional.isPresent()) {
-            System.out.println("로그인 됨?");
-
             User user = userOptional.get();
-            // 입력된 비밀번호와 저장된 비밀번호를 비교
-            return passwordEncoder.matches(password, user.getPassword());
+            // 비밀번호 비교
+            if (passwordEncoder.matches(password, user.getPassword())) {
+                return user.getRole(); // 사용자 역할을 반환
+            }
         }
-        return false; // 사용자 이름이 존재하지 않는 경우
+        return null; // 사용자 이름이 존재하지 않거나 비밀번호가 일치하지 않음
+    }
+    // 사용자 삭제 메서드 추가
+    public void deleteUser(Long userId) {
+        userRepository.deleteById(userId);
     }
 }

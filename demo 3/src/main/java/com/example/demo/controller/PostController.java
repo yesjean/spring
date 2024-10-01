@@ -1,12 +1,23 @@
 package com.example.demo.controller;
 
 import com.example.demo.entity.Post;
+import com.example.demo.repository.PostRepository;
 import com.example.demo.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 @Controller
@@ -16,10 +27,14 @@ public class PostController {
     @Autowired
     private PostService postService;
 
+    @Autowired
+    private PostRepository postRepository;
+
     @GetMapping
     public String getAllPosts(Model model) {
         List<Post> posts = postService.getAllPosts();
         model.addAttribute("posts", posts);
+        System.out.println(posts);
         return "posts"; // posts.html로 이동
     }
 

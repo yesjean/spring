@@ -33,15 +33,24 @@ public class AuthController {
         System.out.println("로그인...");
         return "login"; // login.html로 이동
     }
-//
-//    @PostMapping("/login")
-//    public String login(@RequestParam String username, @RequestParam String password, Model model) {
-//        System.out.println("로그인..?.");
-//        if (userService.authenticate(username, password)) {
-//            return "redirect:/posts"; // 로그인 성공 시 포스트 페이지로 리다이렉트
-//        } else {
-//            model.addAttribute("error", "잘못된 사용자 이름 또는 비밀번호입니다.");
-//            return "login"; // 로그인 실패 시 로그인 페이지로 돌아감
-//        }
-//    }
+
+    @PostMapping("/login")
+    public String login(@RequestParam String username, @RequestParam String password, Model model) {
+        String role = userService.authenticate(username, password); // 사용자 역할을 가져옵니다.
+        System.out.println(role);
+
+        if (role != null) {
+            if (role.equals("ROLE_ADMIN")) {
+                return "redirect:/admin/dashboard"; // 관리자 페이지로 리다이렉트
+            } else {
+                return "redirect:/posts"; // 일반 사용자 페이지로 리다이렉트
+            }
+        } else {
+            model.addAttribute("error", "잘못된 사용자 이름 또는 비밀번호입니다.");
+            return "login"; // 로그인 실패 시 로그인 페이지로 돌아감
+        }
+    }
+
+
+
 }

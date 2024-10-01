@@ -32,17 +32,32 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/admin").hasRole("ADMIN") // 관리자 권한 필요
                         .requestMatchers("/register").permitAll()  // antMatchers 대신 requestMatchers 사용
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
 
                         .loginPage("/login")
-                                .permitAll()
-                                .defaultSuccessUrl("/posts", true)
-                                .failureUrl("/login?error=true") // 실패 시 URL
-                                .usernameParameter("username")
-                                .passwordParameter("password")
+                        .successHandler((request, response, authentication) -> {
+                            // 로그인 성공 후 처리
+                            System.out.println(authentication);
+                            String role = authentication.getAuthorities().stream()
+                                    .findFirst()
+                                    .get()
+                                    .getAuthority();
+
+                            if (role.equals("ROLE_ADMIN")) {
+                                response.sendRedirect("/admin"); // 관리자 페이지로 리다이렉트
+                            } else {
+                                response.sendRedirect("/posts"); // 일반 사용자 페이지로 리다이렉트
+                            }
+                        })
+                        .permitAll()
+//                        .defaultSuccessUrl("/posts", true)
+                        .failureUrl("/login?error=true") // 실패 시 URL
+                        .usernameParameter("username")
+                        .passwordParameter("password")
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout") // 로그아웃 URL 설정
