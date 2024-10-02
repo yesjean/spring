@@ -34,27 +34,16 @@ public class FileSystemStorageService implements StorageService {
 
     @Override
     public String store(MultipartFile file) {
+        // 파일을 src/main/resources/static/files/에 저장
+        Path targetLocation = this.rootLocation.resolve(file.getOriginalFilename());
         try {
-            // 저장할 경로 설정
-            Path rootLocation = Paths.get("src/main/resources/static");
-            if (!Files.exists(rootLocation)) {
-                Files.createDirectories(rootLocation);
-            }
-
-            // 파일 이름을 안전하게 정리
-            String fileName = StringUtils.cleanPath(file.getOriginalFilename());
-            Path destinationFile = rootLocation.resolve(Paths.get(fileName)).normalize().toAbsolutePath();
-
-            // 파일 저장
-            try (InputStream inputStream = file.getInputStream()) {
-                Files.copy(inputStream, destinationFile, StandardCopyOption.REPLACE_EXISTING);
-            }
-
-            return destinationFile.toString(); // 파일의 절대 경로 반환
+            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             throw new StorageException("Failed to store file " + file.getOriginalFilename(), e);
         }
+        return file.getOriginalFilename(); // 저장된 파일 이름 반환
     }
+
 
 
     @Override

@@ -54,7 +54,7 @@ System.out.println(model);
     public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
 
         Resource file = storageService.loadAsResource(filename);
-
+        System.out.println(file.getFilename());
         if (file == null)
             return ResponseEntity.notFound().build();
 

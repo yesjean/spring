@@ -14,6 +14,7 @@
             <th>Title</th>
             <th>Content</th>
             <th>Image</th>
+            <th>Image Downloads</th>
             <th>Actions</th>
         </tr>
         </thead>
@@ -22,7 +23,11 @@
             <td th:text="${post.id}"></td>
             <td th:text="${post.title}"></td>
             <td th:text="${post.content}"></td>
-            <td><img th:src="${post.imagePath}" alt="Post Image" /><img src="/test.png" alt="Uploaded Image">
+            <td>
+                <img th:src="${post.imagePath}" alt="Post Image" style="width: 100px"/>
+            </td>
+            <td>
+                <a th:href="@{/files/{filename}(filename=${post.imagePath})}" download class="btn btn-info btn-sm mt-2">Download</a>
             </td>
             <td>
                 <a th:href="@{/posts/edit/{id}(id=${post.id})}" class="btn btn-warning btn-sm">Edit</a>

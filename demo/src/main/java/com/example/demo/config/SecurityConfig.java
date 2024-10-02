@@ -32,6 +32,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/static/**", "/images/**", "/css/**", "/js/**","/files/**").permitAll()
                         .requestMatchers("/admin").hasRole("ADMIN") // 관리자 권한 필요
                         .requestMatchers("/register").permitAll()  // antMatchers 대신 requestMatchers 사용
                         .anyRequest().authenticated()
