@@ -66,7 +66,8 @@ System.out.println(model);
     public String handleFileUpload(@RequestParam("file") MultipartFile file,
                                    @RequestParam("title") String title, // 제목 추가
                                    @RequestParam("content") String content, // 내용 추가
-                                   RedirectAttributes redirectAttributes) {
+                                   RedirectAttributes redirectAttributes,
+                                   Model model) {
         System.out.println("Uploaded file name: " + file.getOriginalFilename());
         System.out.println("File size: " + file.getSize());
 
@@ -84,7 +85,7 @@ System.out.println(model);
         postRepository.save(post); // 데이터베이스에 저장
         redirectAttributes.addFlashAttribute("message",
                 "You successfully uploaded " + file.getOriginalFilename() + "!");
-
+        model.addAttribute( postRepository.findAll());
         return "redirect:/posts";
     }
 

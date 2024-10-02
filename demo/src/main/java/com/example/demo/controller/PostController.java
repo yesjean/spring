@@ -33,7 +33,7 @@ public class PostController {
     @GetMapping
     public String getAllPosts(Model model) {
         List<Post> posts = postService.getAllPosts();
-        model.addAttribute("posts", posts);
+        model.addAttribute("posts", postRepository.findAll());
         System.out.println(posts);
         return "posts"; // posts.html로 이동
     }
