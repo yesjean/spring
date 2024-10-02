@@ -38,17 +38,25 @@ public class UserService {
     public List<Post> findAllPosts() {
         return postRepository.findAll();
     }
-    public void registerUser(User user) {
-        user.setRole("ROLE_USER"); // 기본 역할
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+    public void registerUser(User user, boolean isAdmin) {
+        if (isAdmin) {
+            user.setRole("ROLE_ADMIN"); // 관리자로 등록
+        } else {
+            user.setRole("ROLE_USER"); // 기본 역할
+        }
+
+        user.setPassword(passwordEncoder.encode(user.getPassword())); // 비밀번호 암호화
+
         try {
             userRepository.save(user);
-            userRoleRepository.save(new UserRole(user.getUsername(), "ROLE_USER")); // UserRole은 user_roles에 매핑된 Entity 클래스입니다.
+            userRoleRepository.save(new UserRole(user.getUsername(), user.getRole())); // 역할에 따라 UserRole 저장
             System.out.println("사용자 정보가 저장되었습니다: " + user);
         } catch (Exception e) {
             System.out.println("사용자 저장 실패: " + e.getMessage());
         }
     }
+
 
     // 로그인 처리
     public String authenticate(String username, String password) {

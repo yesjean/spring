@@ -23,10 +23,20 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public String registerUser(@ModelAttribute User user) {
-        userService.registerUser(user);
-        return "redirect:/login"; // 로그인 페이지로 리다이렉트
+    public String registerUser(
+            @RequestParam String username,
+            @RequestParam String password,
+            @RequestParam(required = false) boolean admin) { // admin 체크박스 추가
+System.out.println(admin);
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(password);
+
+        userService.registerUser(user, admin); // 수정된 메서드 호출
+
+        return "redirect:/login"; // 성공적으로 등록 후 로그인 페이지로 리다이렉트
     }
+
 
     @GetMapping("/login")
     public String showLoginForm() {
