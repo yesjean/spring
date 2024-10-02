@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import com.example.demo.entity.Post;
 import com.example.demo.repository.PostRepository;
+import com.example.demo.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -12,12 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
@@ -32,6 +28,9 @@ public class FileUploadController {
     private final StorageService storageService;
     @Autowired
     private PostRepository postRepository;
+
+    @Autowired
+    private PostService postService;
 
     @Autowired
     public FileUploadController(StorageService storageService) {
@@ -67,7 +66,8 @@ System.out.println(model);
                                    @RequestParam("title") String title, // 제목 추가
                                    @RequestParam("content") String content, // 내용 추가
                                    RedirectAttributes redirectAttributes,
-                                   Model model) {
+                                   Model model,
+                                   @ModelAttribute Post post) {
         System.out.println("Uploaded file name: " + file.getOriginalFilename());
         System.out.println("File size: " + file.getSize());
 
@@ -75,13 +75,12 @@ System.out.println(model);
         String filePath = storageService.store(file);
 
         // 데이터베이스에 경로 저장
-        Post post = new Post();
         post.setImagePath(filePath); // 저장된 파일의 경로를 설정
         post.setTitle(title); // 제목 설정
         post.setContent(content); // 내용 설정
 
         postRepository.save(post); // 데이터베이스에 저장
-
+        postService.createPost(post);
         postRepository.save(post); // 데이터베이스에 저장
         redirectAttributes.addFlashAttribute("message",
                 "You successfully uploaded " + file.getOriginalFilename() + "!");

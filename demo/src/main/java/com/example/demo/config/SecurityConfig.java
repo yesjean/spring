@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -31,8 +32,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .csrf((csrf) -> csrf.ignoringRequestMatchers("/posts/sendEmail"))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/static/**", "/images/**", "/css/**", "/js/**","/files/**").permitAll()
+                        .requestMatchers("/static/**", "/images/**", "/css/**", "/js/**","/files/**", "/posts/sendEmail", "/Users/*").permitAll()
                         .requestMatchers("/admin").hasRole("ADMIN") // 관리자 권한 필요
                         .requestMatchers("/register").permitAll()  // antMatchers 대신 requestMatchers 사용
                         .anyRequest().authenticated()

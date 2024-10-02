@@ -2,10 +2,13 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.Post;
 import com.example.demo.repository.PostRepository;
+import com.example.demo.service.EmailService;
 import com.example.demo.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +37,9 @@ public class PostController {
     public String getAllPosts(Model model) {
         List<Post> posts = postService.getAllPosts();
         model.addAttribute("posts", postRepository.findAll());
-        System.out.println(posts);
+        for (Post post : posts) {
+            System.out.println("Post ID: " + post.getId() + ", Image Path: " + post.getImagePath());
+        }
         return "posts"; // posts.html로 이동
     }
 

@@ -4,6 +4,104 @@
     <title>Post List</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
+<style>
+    .email-form {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .email-form input, .email-form textarea, .email-form button {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+
+    .email-form input:focus, .email-form textarea:focus {
+        border-color: #007bff;
+        outline: none;
+    }
+
+    .email-form textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .email-form button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .email-form button:hover {
+        background-color: #0056b3;
+    }
+
+    .email-form h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 18px;
+        color: #333;
+    }
+
+    .email-form label {
+        font-size: 14px;
+        margin-bottom: 5px;
+        color: #555;
+    }
+    /* 팝업 기본 스타일 */
+    .popup-overlay {
+        display: none; /* 처음에는 팝업이 보이지 않음 */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .popup-content {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        max-width: 400px;
+        width: 100%;
+    }
+
+    .popup-content input, .popup-content textarea, .popup-content button {
+        width: 100%;
+        margin-bottom: 10px;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+
+    .popup-content button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+        padding: 10px;
+    }
+
+    .popup-content button:hover {
+        background-color: #0056b3;
+    }
+</style>
 <body>
 <div class="container mt-5">
     <h1 class="mb-4">Posts</h1>
@@ -16,6 +114,7 @@
             <th>Image</th>
             <th>Image Downloads</th>
             <th>Actions</th>
+            <th>Send Mail</th>
         </tr>
         </thead>
         <tbody>
@@ -27,12 +126,40 @@
                 <img th:src="${post.imagePath}" alt="Post Image" style="width: 100px"/>
             </td>
             <td>
-                <a th:href="@{/files/{filename}(filename=${post.imagePath})}" download class="btn btn-info btn-sm mt-2">Download</a>
+                <a th:href="@{/files/{filename}(filename=${post.imagePath})}" download class="btn btn-info btn-sm mt-2">  <img th:src="@{/files/{filename}(filename=${post.imagePath})}" style="display: none">Download</a>
             </td>
             <td>
                 <a th:href="@{/posts/edit/{id}(id=${post.id})}" class="btn btn-warning btn-sm">Edit</a>
                 <a th:href="@{/posts/delete/{id}(id=${post.id})}" class="btn btn-danger btn-sm">Delete</a>
             </td>
+            <td>
+                <button class="btn btn-primary form">Send Email</button>
+                <!-- 팝업 창 -->
+                <div class="popup-overlay form">
+                    <div class="popup-content">
+                        <form th:action="@{/posts/sendEmail}" method="POST" class="email-form">
+                            <h2>Send Email</h2>
+
+                            <label for="to">Recipient Email</label>
+                            <input type="email" id="to" name="to" placeholder="Recipient Email" required>
+
+                            <label for="title">Email Title</label>
+                            <input type="text"  name="title" placeholder="Email Title" th:value="${post.title}" required>
+
+                            <label for="content">Email Content</label>
+                            <textarea name="content" placeholder="Email Content" th:text="${post.content}" required></textarea>
+
+                            <label for="imagePath">Image Path</label>
+                            <input type="text" id="imagePath" name="imagePath" placeholder="Path to Image" th:value="${post.imagePath}">
+
+                            <button type="submit">Send Email</button>
+                        </form>
+                        <!-- 팝업 닫기 버튼 -->
+                        <button class="close-popup">Close</button>
+                    </div>
+                </div>
+            </td>
+
         </tr>
         </tbody>
     </table>
@@ -57,4 +184,26 @@
     </form>
 </div>
 </body>
+<script>
+    // 팝업 열기
+    const arr = document.getElementsByClassName('btn btn-primary form')
+    for(let i = 0; i< arr.length; i++) {
+        arr[i].addEventListener('click', function() {
+            const arr2 = document.getElementsByClassName('popup-overlay form')
+            for(let i = 0; i< arr2.length; i++) {
+                arr2[i].style.display = 'flex';
+            }
+            });
+    }
+    // 팝업 닫기
+    const arr3 = document.getElementsByClassName('close-popup')
+    for(let i = 0; i< arr3.length; i++) {
+        arr3[i].addEventListener('click', function() {
+            const arr4 = document.getElementsByClassName('popup-overlay form')
+            for(let i = 0; i< arr4.length; i++) {
+                arr4[i].style.display = 'none';
+            }
+        });
+    }
+</script>
 </html>
