@@ -46,4 +46,9 @@ public class PostService {
     public void savePost(Post post) {
         postRepository.save(post);
     }
+
+    public Post getPostWithMostLikes() {
+        return postRepository.findTopByOrderByLikesDesc(); // 좋아요 수 기준으로 상위 1개 게시물 조회
+    }
+
 }

@@ -6,17 +6,31 @@
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBQkZ4A94BOJraryswftwqFis6l53qfsqA"></script> <!-- 여기에 Google Maps API 키를 입력하세요 -->
     <style>
+        .main-post {
+            background-color: #f8f9fa; /* 배경색 */
+            padding: 20px; /* 패딩 */
+            border: 1px solid #ced4da; /* 테두리 */
+            border-radius: 5px; /* 모서리 둥글게 */
+            margin-bottom: 20px; /* 아래 여백 */
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* 가운데 정렬 */
+        }
+        .main-post .card {
+            width: 100%; /* 카드가 전체 너비를 차지 */
+            max-width: 800px; /* 최대 너비 설정 */
+            margin-bottom: 20px; /* 카드 간 간격 */
+        }
+
         /* 카드 형식의 게시글 스타일 */
         .card-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            overflow-y: auto; /* 스크롤 가능하게 설정 */
-            max-height: 600px; /* 최대 높이 설정 */
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3열로 설정 */
+            gap: 20px; /* 카드 간 간격 */
+            margin-top: 20px; /* 카드 목록 위쪽 여백 */
         }
 
         .card {
-            width: 300px;
             border: 1px solid #ddd;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -60,6 +74,7 @@
         #map {
             height: 400px; /* 지도의 높이 설정 */
             margin-top: 20px; /* 지도와 게시글 리스트 간의 간격 */
+            margin-bottom: 40px;
         }
     </style>
 </head>
@@ -83,7 +98,26 @@
 </nav>
 
 <div class="container mt-5">
+    <div class="main-post">
+        <h1>가장 인기 있는 게시물</h1>
+        <div class="card" th:onclick="'window.location.href=\'/posts/' + ${topPost.id} + '\''">
+            <img th:src="${topPost.imagePath}" alt="Top Post Image">
+            <div class="card-body">
+                <h2 class="card-title" th:text="${topPost.title}"></h2>
+                <p class="card-text" th:text="${topPost.content}"></p>
+                <p>좋아요 수: <span th:text="${topPost.likes}"></span></p>
+                <div class="action-buttons">
+                    <button id="like-btn-[[${topPost.id}]]" class="btn btn-primary" onclick="likePost([[${topPost.id}]])">
+                        👍 Like <span id="like-count-[[${topPost.id}]]">[[${topPost.likes}]]</span>
+                    </button>
+                    <a th:href="@{/posts/edit/{id}(id=${topPost.id})}" class="btn btn-warning btn-sm">Edit</a>
+                    <a th:href="@{/posts/delete/{id}(id=${topPost.id})}" class="btn btn-danger btn-sm">Delete</a>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <h2>전체 게시물</h2>
     <div class="card-container">
         <div class="card" th:each="post : ${posts}" th:onclick="'window.location.href=\'/posts/' + ${post.id} + '\''">
             <img th:src="${post.imagePath}" alt="Post Image">
@@ -91,11 +125,9 @@
                 <h5 class="card-title" th:text="${post.title}"></h5>
                 <p class="card-text" th:text="${post.content}"></p>
                 <div class="action-buttons">
-                    <!-- 게시글 목록에 있는 좋아요 버튼 -->
                     <button id="like-btn-[[${post.id}]]" class="btn btn-primary" onclick="likePost([[${post.id}]])">
                         👍 Like <span id="like-count-[[${post.id}]]">[[${post.likes}]]</span>
                     </button>
-
                     <a th:href="@{/posts/edit/{id}(id=${post.id})}" class="btn btn-warning btn-sm">Edit</a>
                     <a th:href="@{/posts/delete/{id}(id=${post.id})}" class="btn btn-danger btn-sm">Delete</a>
                 </div>
@@ -112,7 +144,7 @@
     function initMap() {
         const map = new google.maps.Map(document.getElementById("map"), {
             center: { lat: 37.5665, lng: 126.978 }, // 서울 중심
-            zoom: 12,
+            zoom: 7,
         });
 
         // API에서 데이터 가져오기
@@ -141,6 +173,7 @@
             }
         });
     }
+
     function likePost(postId) {
         $.ajax({
             type: 'POST',
@@ -157,13 +190,10 @@
         });
     }
 
-
     // 문서가 준비되면 initMap 함수 호출
     $(document).ready(function() {
         initMap();
     });
 </script>
-
-
 </body>
 </html>

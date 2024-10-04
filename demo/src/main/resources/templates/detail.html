@@ -5,177 +5,149 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
   <!-- Google Maps API -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBQkZ4A94BOJraryswftwqFis6l53qfsqA"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBQkZ4A94BOJraryswftwqFis6l53qfsqA&callback=initMap" async defer></script>
   <script>
-    // 팝업 열기
-    function openMailPopup() {
-      $('#mailPopup').show();
-    }
+    let map;
+    let postMarker; // 원래 마커를 저장할 변수
+    let userMarker; // 사용자 위치 마커를 저장할 변수
+    let distanceService; // 거리 계산 서비스를 저장할 변수
 
-    // 팝업 닫기
-    function closeMailPopup() {
-      $('#mailPopup').hide();
-    }
-
-    // 메일 전송 로직
-    function sendMail() {
-      var recipient = $('#recipientEmail').val();
-      var subject = $('#emailSubject').val();
-      var message = $('#emailMessage').val();
-      var imagePath = $('#imagePath').val(); // 이미지 경로를 추가
-
-      // 메일 발송 요청 처리
-      $.ajax({
-        type: 'POST',
-        url: '/posts/sendEmail',
-        contentType: 'application/json', // JSON 형식으로 전송
-        data: JSON.stringify({
-          recipient: recipient,
-          subject: subject,
-          message: message,
-          imagePath: imagePath // 이미지 경로 추가
-        }),
-        success: function() {
-          alert('메일 전송 완료!');
-          closeMailPopup();
-        },
-        error: function() {
-          alert('메일 전송 실패!');
-        }
-      });
-    }
-
-    // Google Maps 초기화 및 마커 추가
     function initMap() {
+      const defaultLocation = { lat: 36.5, lng: 127.5 };
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: defaultLocation,
+        zoom: 7,
+      });
+
+      distanceService = new google.maps.DistanceMatrixService(); // 거리 계산 서비스 초기화
+
       const postId = getPostIdFromUrl(); // URL에서 포스트 ID 가져오기
-      console.log("Post ID:", postId); // ID 출력
 
       $.ajax({
-        url: `/api/posts/${postId}`, // API 호출
+        url: `/api/posts/${postId}`,
         method: 'GET',
         success: function(post) {
-          console.log("Post Data:", post); // 게시물 데이터 출력
-          if (!post) {
-            alert('No post found for this ID!');
-            return;
-          }
-
           const location = {
-            lat: post.latitude, // 위도
-            lng: post.longitude // 경도
+            lat: post.latitude,
+            lng: post.longitude
           };
 
-          const map = new google.maps.Map(document.getElementById("map"), {
-            zoom: 10,
-            center: location,
-          });
-
-          new google.maps.Marker({
+          postMarker = new google.maps.Marker({
             position: location,
             map: map,
             title: "Post Location",
           });
+
+          // 마커 클릭 이벤트 추가
+          postMarker.addListener('click', function() {
+            getUserLocation(); // 사용자 위치 가져오는 함수 호출
+          });
         },
-        error: function(xhr) {
-          console.error("Error:", xhr); // 에러 출력
+        error: function() {
           alert('Failed to load post data!');
         }
       });
     }
 
-
     // URL에서 포스트 ID를 가져오는 함수
     function getPostIdFromUrl() {
-      const pathSegments = window.location.pathname.split('/'); // URL을 '/'로 나눔
-      return pathSegments[pathSegments.length - 1]; // 마지막 부분이 ID일 것임
+      const pathSegments = window.location.pathname.split('/');
+      return pathSegments[pathSegments.length - 1];
     }
 
-    function likePost() {
-      const postId = getPostIdFromUrl(); // URL에서 포스트 ID 가져오기
-      console.log(postId)
-      $.ajax({
-        type: 'POST',
-        url: `/api/posts/${postId}/like`,
-        success: function(response) {
-          // 성공하면 해당 게시글의 좋아요 숫자(span)를 업데이트
-          let likeCountElement = document.getElementById(`like-count`);
-          let currentLikes = parseInt(likeCountElement.textContent);
-          likeCountElement.textContent = currentLikes + 1; // 좋아요 수를 1 증가
-        },
-        error: function(error) {
-          alert('오류가 발생했습니다.');
+    // 사용자 위치를 가져오는 함수
+    function getUserLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+          const userLocation = {
+            lat: parseFloat('${post.latitude}'),
+            lng: parseFloat('${post.longitude}')
+          };
+          setUserMarker(userLocation); // 사용자 마커 설정
+          calculateDistance(userLocation); // 거리 계산 함수 호출
+        }, () => {
+          alert('Unable to retrieve your location. Please allow location access.');
+        });
+      } else {
+        alert('Geolocation is not supported by this browser.');
+      }
+    }
+
+    // 사용자 위치 마커를 설정하는 함수
+    function setUserMarker(userLocation) {
+      if (userMarker) {
+        userMarker.setMap(null); // 기존 마커 제거
+      }
+      userMarker = new google.maps.Marker({
+        position: userLocation,
+        map: map,
+        title: "Your Location",
+      });
+      map.setCenter(userLocation); // 지도 중심을 사용자 위치로 설정
+    }
+
+    function calculateDistance(userLocation) {
+      const markerLocation = {
+        lat: postMarker.getPosition().lat(),
+        lng: postMarker.getPosition().lng()
+      };
+
+      // 위도 및 경도 유효성 검사
+      if (!userLocation || !markerLocation) {
+        alert('위치 정보를 올바르게 입력해주세요.');
+        return;
+      }
+
+      distanceService.getDistanceMatrix({
+        origins: [userLocation],
+        destinations: [markerLocation],
+        travelMode: 'DRIVING',
+      }, (response, status) => {
+        if (status === 'OK') {
+          const element = response.rows[0].elements[0];
+          if (element.status === 'OK') {
+            const distance = element.distance.text;
+            alert(`Distance to the post location: ${distance}`);
+          } else {
+            alert(`Distance calculation failed: ${element.status}`);
+            console.error('Distance calculation failed:', element);
+          }
+        } else {
+          console.error('Error in distance matrix response:', status);
+          alert('Failed to calculate distance. Please try again.');
         }
       });
     }
 
 
-    window.onload = initMap; // 페이지 로드 시 initMap 호출
   </script>
   <style>
-    /* 팝업 스타일 */
-    #mailPopup {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 400px;
-      padding: 20px;
-      background-color: white;
-      border: 1px solid #ccc;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      z-index: 1000;
-    }
-    #mailPopup input, #mailPopup textarea {
-      width: 100%;
-      margin-bottom: 10px;
-    }
-
     /* 지도 스타일 */
     #map {
       width: 100%;
-      height: 400px; /* 원하는 크기로 설정 가능 */
+      height: 400px;
       margin-top: 20px;
+      margin-bottom: 40px;
     }
   </style>
 </head>
 <body>
 <div class="container mt-5">
   <div class="card">
-    <img th:src="${post.imagePath}" id="imagePath" alt="Post Image" class="card-img-top">
+    <img th:src="${post.imagePath}" alt="Post Image" class="card-img-top">
     <div class="card-body">
       <h5 class="card-title" th:text="${post.title}"></h5>
       <p class="card-text" th:text="${post.content}"></p>
-      <div class="action-buttons">
-        <!-- 게시글 상세에 있는 좋아요 버튼 -->
-        <button id="like-btn" class="btn btn-primary" onclick="likePost()">
-          👍 Like <span id="like-count">[[${post.likes}]]</span>
-        </button>
-
-
-        <a th:href="@{/posts/edit/{id}(id=${post.id})}" class="btn btn-warning">Edit</a>
-        <form th:action="@{/posts/delete/{id}(id=${post.id})}" method="post" style="display: inline;">
-          <button type="submit" class="btn btn-danger">Delete</button>
-        </form>
-        <a href="/posts" class="btn btn-secondary">Back to List</a>
-        <!-- 메일 전송 팝업 열기 버튼 -->
-        <button type="button" class="btn btn-info" onclick="openMailPopup()">Send Email</button>
-      </div>
+      <a th:href="@{/posts/edit/{id}(id=${post.id})}" class="btn btn-warning">Edit</a>
+      <form th:action="@{/posts/delete/{id}(id=${post.id})}" method="post" style="display: inline;">
+        <button type="submit" class="btn btn-danger">Delete</button>
+      </form>
+      <a href="/posts" class="btn btn-secondary">Back to List</a>
     </div>
   </div>
 
   <!-- Google Maps 추가 -->
   <div id="map"></div>
-</div>
-
-<!-- 메일 전송 팝업 -->
-<div id="mailPopup">
-  <h5>Send Email</h5>
-  <input type="email" id="recipientEmail" placeholder="Recipient Email">
-  <input type="text" id="emailSubject" placeholder="Email Subject">
-  <textarea id="emailMessage" placeholder="Message" rows="4"></textarea>
-  <button type="button" class="btn btn-primary" onclick="sendMail()">Send</button>
-  <button type="button" class="btn btn-secondary" onclick="closeMailPopup()">Close</button>
 </div>
 </body>
 </html>

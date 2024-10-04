@@ -41,13 +41,14 @@ public class PostController {
     }
     @GetMapping
     public String getAllPosts(Model model) {
-        List<Post> posts = postService.getAllPosts();
-        model.addAttribute("posts", posts);
-        for (Post post : posts) {
-            System.out.println("Post ID: " + post.getId() + ", Image Path: " + post.getImagePath());
-        }
-        return "posts"; // posts.html로 이동
+        Post topPost = postService.getPostWithMostLikes(); // 좋아요 수가 가장 많은 게시물
+        List<Post> allPosts = postService.getAllPosts(); // 전체 게시물
+
+        model.addAttribute("topPost", topPost);
+        model.addAttribute("posts", allPosts);
+        return "posts"; // posts.html 템플릿으로 이동
     }
+
     // 게시물 생성 페이지로 이동
     @GetMapping("/create")
     public String showCreatePostForm(Model model) {
