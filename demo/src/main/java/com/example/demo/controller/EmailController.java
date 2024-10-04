@@ -2,37 +2,39 @@ package com.example.demo.controller;
 
 import com.example.demo.service.EmailService;
 import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.stereotype.Controller;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+@RestController // @Controller 대신 @RestController 사용
 public class EmailController {
 
     @Autowired
     private JavaMailSender mailSender;
 
-
     @Autowired
     private EmailService emailService;
 
     @PostMapping("/posts/sendEmail")
-    public String sendEmail(@RequestParam String to, @RequestParam String title, @RequestParam String content,  @RequestParam String imagePath) throws MessagingException {
-        SimpleMailMessage message = new SimpleMailMessage();
-//        message.setTo(to);
-//        message.setSubject(title);
-//        message.setText(content);
-        emailService.sendEmail(to, title, content,imagePath);
-        return "redirect:/posts"; // 이메일 전송 후 리다이렉트할 페이지
+    public ResponseEntity<?> sendEmail(@RequestBody EmailRequest emailRequest) {
+        try {
+            String recipient = emailRequest.getRecipient();
+            String subject = emailRequest.getSubject();
+            String message = emailRequest.getMessage();
+            String imagePath = emailRequest.getImagePath(); // 이미지 경로 추가
+
+            // 이메일 전송 로직
+            emailService.sendEmailWithPostImage(recipient, subject, message, imagePath);
+            return ResponseEntity.ok("메일 전송 완료!");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("메일 전송 실패!");
+        }
     }
-
-//    @PostMapping("/posts/sendEmail")
-//    public String sendEmail(@RequestParam String to, @RequestParam String title, @RequestParam String content) {
-//        emailService.sendEmail(to, title, content);
-//        return "redirect:/posts"; // 이메일 전송 후 리다이렉트할 페이지
-//    }
 }
-

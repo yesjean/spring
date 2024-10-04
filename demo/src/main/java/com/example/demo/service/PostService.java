@@ -43,17 +43,7 @@ public class PostService {
         postRepository.save(post);
     }
 
-    public void savePost(Post post, MultipartFile file) {
-        if (!file.isEmpty()) {
-            String fileName = file.getOriginalFilename();
-            String filePath = "path/to/save/" + fileName; // 실제 저장 경로로 변경
-            try {
-                file.transferTo(new File(filePath));
-                post.setImagePath(filePath); // 이미지 경로 설정
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        postRepository.save(post); // 게시물 저장
+    public void savePost(Post post) {
+        postRepository.save(post);
     }
 }

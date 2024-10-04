@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Create New Post</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBQkZ4A94BOJraryswftwqFis6l53qfsqA"></script>
+  <style>
+    #map {
+      height: 400px;
+      margin-top: 20px;
+    }
+  </style>
+  <script>
+    // 이미지 미리보기
+    function previewImage(input) {
+      const file = input.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          document.getElementById('imagePreview').src = e.target.result;
+        }
+        reader.readAsDataURL(file);
+      }
+    }
+
+    let map;
+    let marker;
+
+    function initMap() {
+      const defaultLocation = { lat: 37.5665, lng: 126.978 }; // 서울 시청 좌표
+      map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 8,
+        center: defaultLocation,
+      });
+
+      marker = new google.maps.Marker({
+        position: defaultLocation,
+        map: map,
+        draggable: true // 마커 드래그 가능
+      });
+
+      // 마커 위치가 바뀔 때마다 위도와 경도 업데이트
+      google.maps.event.addListener(marker, 'dragend', function(event) {
+        $('#latitude').val(event.latLng.lat());
+        $('#longitude').val(event.latLng.lng());
+      });
+
+      // 클릭 이벤트로 마커 위치 변경
+      map.addListener("click", (event) => {
+        marker.setPosition(event.latLng);
+        $('#latitude').val(event.latLng.lat());
+        $('#longitude').val(event.latLng.lng());
+      });
+    }
+
+    $(document).ready(function() {
+      initMap();
+    });
+  </script>
+</head>
+<body>
+<div class="container mt-5">
+  <h2>Create New Post</h2>
+  <form th:action="@{/posts/create}" method="post" enctype="multipart/form-data">
+    <div class="form-group">
+      <label for="title">Title</label>
+      <input type="text" id="title" name="title" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+      <label for="content">Content</label>
+      <textarea id="content" name="content" class="form-control" rows="5" required></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="image">Image</label>
+      <div>
+        <img id="imagePreview" th:src="${post.imagePath}" alt="Post Image" class="img-thumbnail" style="max-width: 300px; margin-bottom: 10px;">
+      </div>
+      <input type="file" id="image" name="image" class="form-control" onchange="previewImage(this)">
+      <small class="form-text text-muted">Upload an image for the post.</small>
+    </div>
+    <input type="hidden" id="latitude" name="latitude">
+    <input type="hidden" id="longitude" name="longitude">
+    <button type="submit" class="btn btn-primary">Create Post</button>
+    <a href="/posts" class="btn btn-secondary">Cancel</a>
+  </form>
+  <div id="map"></div>
+</div>
+</body>
+</html>

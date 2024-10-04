@@ -4,7 +4,6 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -22,30 +21,32 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
-    public void sendEmail(String to, String title, String content, String imagePath) throws MessagingException {
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-
+    public void sendEmailWithPostImage(String recipient, String subject, String content, String imagePath) {
         try {
-            helper.setTo(to);
-            helper.setSubject(title);
-            helper.setText(content, true);
-            FileSystemResource file2 = new FileSystemResource(new File("src/main/resources/static/"+imagePath));
-        System.out.println(file2.getPath());
-            // 첨부 파일 추가
-            File file = new File(file2.getPath());
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(recipient);
+            helper.setSubject(subject);
+            helper.setText(
+                    "<html><body>" +
+                            "<p>" + content + "</p>" +
+                            "<img src='" + imagePath + "' alt='Post Image' style='width:300px;'/>" +
+                            "</body></html>",
+                    true
+            );
+
+            // 이미지 파일 첨부
+            FileSystemResource file = new FileSystemResource(new File("src/main/resources/static/" + imagePath));
             if (file.exists()) {
-                helper.addAttachment(file.getName(), file);
+                helper.addAttachment(file.getFilename(), file);
             } else {
                 throw new FileNotFoundException("File not found: " + imagePath);
             }
 
-        } catch (FileNotFoundException e) {
-            System.err.println(e.getMessage());
-            throw new MessagingException("Error sending email: " + e.getMessage(), e);
+            mailSender.send(message);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        mailSender.send(message);
     }
-
 }

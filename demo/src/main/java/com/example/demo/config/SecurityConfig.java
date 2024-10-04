@@ -32,9 +32,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf((csrf) -> csrf.ignoringRequestMatchers("/posts/sendEmail"))
+                .csrf((csrf) -> csrf.ignoringRequestMatchers("/posts/sendEmail","/api/posts/**"))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/static/**", "/images/**", "/css/**", "/js/**","/files/**", "/posts/sendEmail", "/Users/*").permitAll()
+                        .requestMatchers("/static/**", "/images/**", "/css/**", "/js/**","/files/**", "/posts/sendEmail", "/Users/*", "/api/posts/**").permitAll()
                         .requestMatchers("/admin").hasRole("ADMIN") // 관리자 권한 필요
                         .requestMatchers("/register").permitAll()  // antMatchers 대신 requestMatchers 사용
                         .anyRequest().authenticated()
