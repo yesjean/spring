@@ -6,12 +6,18 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.core.Authentication;
@@ -32,9 +38,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf((csrf) -> csrf.ignoringRequestMatchers("/posts/sendEmail","/api/posts/**"))
+                .csrf((csrf) -> csrf.ignoringRequestMatchers("/posts/sendEmail","/api/posts/**","/profile/**"))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/static/**", "/images/**", "/css/**", "/js/**","/files/**", "/posts/sendEmail", "/Users/*", "/api/posts/**").permitAll()
+                        .requestMatchers("/static/**", "/images/**", "/css/**", "/js/**","/files/**", "/posts/sendEmail", "/Users/*", "/api/posts/**","/profile/**").permitAll()
                         .requestMatchers("/admin").hasRole("ADMIN") // 관리자 권한 필요
                         .requestMatchers("/register").permitAll()  // antMatchers 대신 requestMatchers 사용
                         .anyRequest().authenticated()
@@ -62,17 +68,34 @@ public class SecurityConfig {
                         .usernameParameter("username")
                         .passwordParameter("password")
                 )
+                .rememberMe(Customizer.withDefaults())
                 .logout(logout -> logout
                         .logoutUrl("/logout") // 로그아웃 URL 설정
                         .logoutSuccessUrl("/login?logout")
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
                         .permitAll()
-                );
+                )
+        .sessionManagement((sessionManagement) ->
+                sessionManagement
+                        .sessionConcurrency((sessionConcurrency) ->
+                                sessionConcurrency
+                                        .maximumSessions(1)
+                                        .expiredUrl("/login")
+                        )
+        );
 
         return http.build();
     }
+    @Bean
+    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
+        UserDetails user = User.withUsername("user")
+                .password(passwordEncoder.encode("password")) // 비밀번호 인코딩
+                .roles("USER")
+                .build();
 
+        return new InMemoryUserDetailsManager(user);
+    }
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

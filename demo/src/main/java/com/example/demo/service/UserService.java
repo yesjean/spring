@@ -35,6 +35,24 @@ public class UserService {
         return userRepository.findAll();
     }
 
+    public User findUserByUsername(String username) {
+        Optional<User> userOptional = userRepository.findByUsername(username);
+        if (userOptional.isPresent()) {
+            return userOptional.get(); // 사용자 반환
+        } else {
+            throw new RuntimeException("사용자를 찾을 수 없습니다: " + username);
+        }
+    }
+
+    public User findUserById(Long userId) {
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isPresent()) {
+            return userOptional.get(); // 사용자 반환
+        } else {
+            throw new RuntimeException("사용자를 찾을 수 없습니다: " + userId);
+        }
+    }
+
     public List<Post> findAllPosts() {
         return postRepository.findAll();
     }

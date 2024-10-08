@@ -1,12 +1,16 @@
 package com.example.demo.controller;
 
 import com.example.demo.entity.Post;
+import com.example.demo.entity.User;
 import com.example.demo.repository.PostRepository;
 import com.example.demo.service.EmailService;
 import com.example.demo.service.PostService;
+import com.example.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +34,8 @@ public class PostController {
     private PostService postService;
 
     @Autowired
+    private UserService userService;
+    @Autowired
     private PostRepository postRepository;
 
     // 이미지 저장 경로
@@ -39,10 +45,19 @@ public class PostController {
     public List<Post> getApiPosts() {
         return postService.getAllPosts();
     }
+
     @GetMapping
     public String getAllPosts(Model model) {
         List<Post> allPosts = postService.getAllPosts(); // 전체 게시물
         Post topPost = (allPosts.isEmpty()) ? null: postService.getPostWithMostLikes(); // 좋아요 수가 가장 많은 게시물
+        // 현재 인증된 사용자 정보 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName(); // 현재 로그인된 사용자의 username
+
+        // username으로 User 엔티티 가져오기
+        User user = userService.findUserByUsername(currentUsername);
+
+        model.addAttribute("user", user);
 
         model.addAttribute("topPost", topPost);
         model.addAttribute("posts", allPosts);

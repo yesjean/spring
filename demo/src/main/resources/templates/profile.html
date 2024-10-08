@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <title>프로필 수정 페이지</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    .navbar {
+      background-color: #007BFF;
+      color: white;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .navbar a {
+      color: white;
+      text-decoration: none;
+      margin: 0 15px;
+      font-weight: bold;
+    }
+
+    .navbar a:hover {
+      text-decoration: underline;
+    }
+
+    .profile-container {
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .profile-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .profile-content {
+      display: flex;
+      align-items: center;
+    }
+
+    .profile-photo {
+      flex: 1;
+      margin-right: 20px;
+      position: relative;
+    }
+
+    .profile-photo img {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      border: 2px solid #007BFF;
+    }
+
+    .change-photo {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      display: none; /* 기본적으로 숨김 */
+    }
+
+    .profile-details {
+      flex: 2;
+    }
+
+    .profile-details h2 {
+      margin-bottom: 10px;
+      font-size: 24px;
+      color: #333;
+    }
+
+    .profile-details p {
+      margin: 5px 0;
+      font-size: 18px;
+      color: #555;
+    }
+
+    .profile-details input, .profile-details select {
+      font-size: 16px;
+      padding: 5px;
+      width: 100%;
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      display: none; /* 기본적으로 숨김 */
+    }
+
+    .save-button {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .save-button:hover {
+      background-color: #0056b3;
+    }
+
+    .edit-button {
+      margin-top: 10px;
+      background-color: #28a745; /* 수정 버튼 색상 */
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .edit-button:hover {
+      background-color: #218838; /* 수정 버튼 호버 색상 */
+    }
+    .modal {
+      display: none; /* 기본적으로 숨김 */
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgb(0,0,0);
+      background-color: rgba(0,0,0,0.4);
+      padding-top: 60px;
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 5% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 600px;
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .image-option {
+      display: inline-block;
+      margin: 10px;
+      cursor: pointer;
+    }
+
+    .image-option img {
+      width: 100px;
+      height: 100px;
+      border-radius: 10px;
+      border: 2px solid transparent;
+    }
+
+    .image-option img.selected {
+      border: 2px solid #007BFF;
+    }
+    .change-photo {
+      margin-top: 10px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+  <script>
+    function toggleEdit() {
+      const inputs = document.querySelectorAll('.profile-details input, .profile-details select');
+      const displayTexts = document.querySelectorAll('.profile-details p span');
+      const changePhotoButton = document.querySelector('.change-photo');
+
+      inputs.forEach(input => {
+        input.style.display = input.style.display === 'none' ? 'block' : 'none';
+      });
+
+      displayTexts.forEach(span => {
+        span.style.display = span.style.display === 'none' ? 'inline' : 'none';
+      });
+
+      // 사진 변경 버튼 토글
+      changePhotoButton.style.display = changePhotoButton.style.display === 'none' ? 'inline-block' : 'none';
+    }
+
+    function previewImage(event) {
+      const image = document.querySelector('.profile-photo img');
+      image.src = URL.createObjectURL(event.target.files[0]);
+    }
+    function openModal() {
+      document.getElementById('imageModal').style.display = 'block';
+    }
+
+    function closeModal() {
+      document.getElementById('imageModal').style.display = 'none';
+    }
+    function selectImage(imageUrl) {
+      const profileImage = document.querySelector('.profile-photo img');
+      profileImage.src = imageUrl;
+      closeModal();
+    }
+  </script>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" href="#">My Application</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item">
+        <a class="nav-link" href="/items/new">Create New Item</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/posts/create">Create New Post</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/posts">Go Posts</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/">Logout</a>
+      </li>
+      <li>
+        <a th:href="@{/profile/{id}(id=${user.id})}">프로필</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<div class="profile-container">
+  <div class="profile-header">
+    <h1>프로필 수정</h1>
+  </div>
+  <form action="/profile/update" method="POST" enctype="multipart/form-data">
+    <div class="profile-content">
+      <div class="profile-photo">
+        <img src="https://via.placeholder.com/150" alt="Profile Photo">
+        <button type="button" class="change-photo" onclick="openModal()">사진 변경</button>
+      </div>
+      <div class="profile-details">
+        <h2>안녕하세요,
+          <input type="text" name="id" th:value="${user.id}" style="display: none;" />
+          <span id="userName" th:text="${user.name}"></span>님!
+          <input type="text" name="name" th:value="${user.name}" style="display: none;" />
+        </h2>
+        <p><strong>이메일:</strong>
+          <span id="userEmail" th:text="${user.email}"></span>
+          <input type="email" name="email" th:value="${user.email}" style="display: none;" />
+        </p>
+        <p><strong>비밀번호:</strong>
+          <span id="password" th:text="${user.password}"></span>
+          <input type="password" name="password" th:value="${user.password}" style="display: none;" />
+        </p>
+        <p><strong>성:</strong>
+          <span id="userLastName" th:text="${user.lastName}"></span>
+          <input type="text" name="lastName" th:value="${user.lastName}" style="display: none;" />
+        </p>
+        <p><strong>역할:</strong>
+          <span id="userRole" th:text="${user.role}"></span>
+          <input type="text" name="role" th:value="${user.role}" style="display: none;" />
+        </p>
+        <p><strong>활성화 상태:</strong>
+          <span id="userEnabled" th:text="${user.enabled ? '활성화됨' : '비활성화됨'}"></span>
+          <select name="enabled" style="display: none;">
+            <option th:selected="${user.enabled}" th:value="true">활성화됨</option>
+            <option th:selected="!${user.enabled}" th:value="false">비활성화됨</option>
+          </select>
+        </p>
+        <button type="submit" class="save-button">저장</button>
+        <button type="button" class="edit-button" onclick="toggleEdit()">수정</button>
+      </div>
+    </div>
+  </form>
+
+  <!-- 이미지 선택 팝업 -->
+  <div id="imageModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h2>프로필 사진 선택</h2>
+      <div>
+        <div class="image-option" onclick="selectImage('https://via.placeholder.com/150/ff0000')">
+          <img src="https://via.placeholder.com/150/ff0000" alt="Image 1">
+        </div>
+        <div class="image-option" onclick="selectImage('https://via.placeholder.com/150/00ff00')">
+          <img src="https://via.placeholder.com/150/00ff00" alt="Image 2">
+        </div>
+        <div class="image-option" onclick="selectImage('https://via.placeholder.com/150/0000ff')">
+          <img src="https://via.placeholder.com/150/0000ff" alt="Image 3">
+        </div>
+        <div class="image-option" onclick="selectImage('https://via.placeholder.com/150/ffff00')">
+          <img src="https://via.placeholder.com/150/ffff00" alt="Image 4">
+        </div>
+        <div class="image-option" onclick="selectImage('https://via.placeholder.com/150/ff00ff')">
+          <img src="https://via.placeholder.com/150/ff00ff" alt="Image 5">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

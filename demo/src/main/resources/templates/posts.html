@@ -16,6 +16,27 @@
             flex-direction: column;
             align-items: center; /* 가운데 정렬 */
         }
+
+        .navbar {
+            background-color: #007BFF;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: bold;
+        }
+
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+
         .main-post .card {
             width: 100%; /* 카드가 전체 너비를 차지 */
             max-width: 800px; /* 최대 너비 설정 */
@@ -95,6 +116,13 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="#" id="mapLink">View Map</a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link"  th:href="@{/profile/{id}(id=${user.id})}">Profile</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/">Logout</a>
             </li>
         </ul>
     </div>
