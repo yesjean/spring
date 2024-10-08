@@ -40,8 +40,6 @@ public class EmailService {
             FileSystemResource file = new FileSystemResource(new File("src/main/resources/static/" + imagePath));
             if (file.exists()) {
                 helper.addAttachment(file.getFilename(), file);
-            } else {
-                throw new FileNotFoundException("File not found: " + imagePath);
             }
 
             mailSender.send(message);

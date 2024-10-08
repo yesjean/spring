@@ -99,8 +99,10 @@
         </ul>
     </div>
 </nav>
-
-<div class="container mt-5">
+<div th:if="${topPost != null}">
+    <h1>게시물이 없습니다.</h1>
+</div>
+<div class="container mt-5" th:if="${topPost != null}">
     <div class="main-post">
         <h1>가장 인기 있는 게시물</h1>
         <div class="card" th:onclick="'window.location.href=\'/posts/' + ${topPost.id} + '\''">

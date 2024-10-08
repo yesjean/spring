@@ -41,8 +41,8 @@ public class PostController {
     }
     @GetMapping
     public String getAllPosts(Model model) {
-        Post topPost = postService.getPostWithMostLikes(); // 좋아요 수가 가장 많은 게시물
         List<Post> allPosts = postService.getAllPosts(); // 전체 게시물
+        Post topPost = (allPosts.isEmpty()) ? null: postService.getPostWithMostLikes(); // 좋아요 수가 가장 많은 게시물
 
         model.addAttribute("topPost", topPost);
         model.addAttribute("posts", allPosts);
